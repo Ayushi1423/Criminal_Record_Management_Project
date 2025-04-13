@@ -9,7 +9,7 @@ module.exports = {
     },
     'postcss-custom-media': {},
     '@csstools/postcss-global-data': {},
-    'tailwindcss': {},
+    '@tailwindcss/postcss': {},
     'autoprefixer': {},
   },
 } 
