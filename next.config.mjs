@@ -4,6 +4,7 @@ const nextConfig = {
       compiler: "modern",
       silenceDeprecations: ["legacy-js-api"],
     },
-  };
-  
-  export default nextConfig;
+    reactStrictMode: true,
+};
+
+export default nextConfig;
