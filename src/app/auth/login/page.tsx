@@ -14,12 +14,17 @@ import {
   useToast,
   SmartImage,
 } from "@/once-ui/components";
-import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+export const dynamic = 'force-dynamic';
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { addToast } = useToast();
+  const router = useRouter();
 
   const validateLogin = () => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,6 +32,48 @@ export default function Login() {
       return "Email and / or password is invalid.";
     }
     return null;
+  };
+
+  const handleLogin = async () => {
+    const error = validateLogin();
+    if (error) {
+      addToast({
+        variant: "danger",
+        message: error,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.error) {
+        addToast({
+          variant: "danger",
+          message: "Invalid email or password",
+        });
+      } else {
+        addToast({
+          variant: "success",
+          message: "Login successful!",
+        });
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      addToast({
+        variant: "danger",
+        message: "An error occurred during login",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -135,22 +182,8 @@ export default function Login() {
                   label="Log in"
                   arrowIcon
                   fillWidth
-                  onClick={() => {
-                    console.log("Log in button clicked");
-                    const error = validateLogin();
-                    console.log("Validation result:", error);
-                    if (error) {
-                      addToast({
-                        variant: "danger",
-                        message: error,
-                      });
-                    } else {
-                      addToast({
-                        variant: "success",
-                        message: "Login successful!",
-                      });
-                    }
-                  }}
+                  loading={isLoading}
+                  onClick={handleLogin}
                 />
               </Column>
             </Row>
