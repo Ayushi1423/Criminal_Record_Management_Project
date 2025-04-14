@@ -6,6 +6,7 @@ import classNames from "classnames";
 import { style, schema, meta, baseURL, og } from '@/app/resources/config';
 import { Background, Column, Flex, ThemeProvider, ToastProvider } from "@/once-ui/components";
 import { Meta, Schema } from "@/once-ui/modules";
+import { Providers } from './providers';
 
 import { Geist } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
@@ -38,8 +39,21 @@ const tertiary: FontConfig | undefined = undefined;
 
 export async function generateMetadata(): Promise<Metadata> {
   // Ensure meta.baseURL in config.ts is the correct production URL (e.g., 'https://yourdomain.com')
+  const configuredBaseUrl = meta.baseURL || 'localhost:3000'; // Fallback just in case
+  
+  // Ensure the base URL has a scheme for use with new URL()
+  const getAbsoluteUrl = (url: string) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Default to http for localhost or if scheme is missing
+    return `http://${url}`;
+  }
+
+  const baseUrlWithScheme = getAbsoluteUrl(configuredBaseUrl);
+
   const productionBaseUrl = process.env.NODE_ENV === 'production'
-    ? meta.baseURL // Use the configured baseURL for production
+    ? baseUrlWithScheme // Use the corrected configured URL for production
     : 'http://localhost:3000'; // Use localhost for development
 
   // Use the image defined in og config, default to meta image if not present
@@ -127,35 +141,37 @@ export default function RootLayout({
       </head>
       <ThemeProvider>
         <ToastProvider>
-          <Column as="body" fillWidth margin="0" padding="0">
-            <Background
-              position="absolute"
-              mask={{
-                x: 100,
-                y: 0,
-                radius: 100,
-              }}
-              gradient={{
-                display: true,
-                x: 100,
-                y: 60,
-                width: 70,
-                height: 50,
-                tilt: -40,
-                opacity: 90,
-                colorStart: "accent-background-strong",
-                colorEnd: "page-background",
-              }}
-              grid={{
-                display: true,
-                opacity: 100,
-                width: "0.25rem",
-                color: "neutral-alpha-medium",
-                height: "0.25rem",
-              }}
-            />
-            {children}
-          </Column>
+          <Providers>
+            <Column as="body" fillWidth margin="0" padding="0">
+              <Background
+                position="absolute"
+                mask={{
+                  x: 100,
+                  y: 0,
+                  radius: 100,
+                }}
+                gradient={{
+                  display: true,
+                  x: 100,
+                  y: 60,
+                  width: 70,
+                  height: 50,
+                  tilt: -40,
+                  opacity: 90,
+                  colorStart: "accent-background-strong",
+                  colorEnd: "page-background",
+                }}
+                grid={{
+                  display: true,
+                  opacity: 100,
+                  width: "0.25rem",
+                  color: "neutral-alpha-medium",
+                  height: "0.25rem",
+                }}
+              />
+              {children}
+            </Column>
+          </Providers>
         </ToastProvider>
       </ThemeProvider>
     </Flex>
