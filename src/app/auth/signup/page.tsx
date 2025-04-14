@@ -14,14 +14,16 @@ import {
   useToast,
   SmartImage,
 } from "@/once-ui/components";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { addToast } = useToast();
+  const router = useRouter();
 
   const validateSignUp = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,6 +40,55 @@ export default function SignUp() {
       return "Please enter your full name.";
     }
     return null;
+  };
+
+  const handleSignUp = async () => {
+    const error = validateSignUp();
+    if (error) {
+      addToast({
+        variant: "danger",
+        message: error,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: fullName,
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'An error occurred during registration');
+      }
+
+      addToast({
+        variant: "success",
+        message: "Account created successfully! You can now log in.",
+      });
+      
+      // Redirect to login page
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Registration error:', error);
+      addToast({
+        variant: "danger",
+        message: error instanceof Error ? error.message : 'An error occurred during registration',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -171,22 +222,8 @@ export default function SignUp() {
                   label="Sign Up"
                   arrowIcon
                   fillWidth
-                  onClick={() => {
-                    console.log("Sign Up button clicked");
-                    const error = validateSignUp();
-                    console.log("Validation result:", error);
-                    if (error) {
-                      addToast({
-                        variant: "danger",
-                        message: error,
-                      });
-                    } else {
-                      addToast({
-                        variant: "success",
-                        message: "Account created successfully!",
-                      });
-                    }
-                  }}
+                  loading={isLoading}
+                  onClick={handleSignUp}
                 />
               </Column>
             </Row>
