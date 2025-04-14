@@ -23,9 +23,6 @@ dist/
 .DS_Store
 *.pem
 
-# Database file
-data.sqlite
-
 # debug
 *.log
 npm-debug.log*
