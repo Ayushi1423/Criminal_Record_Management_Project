@@ -1,0 +1,195 @@
+/**
+ * Migration script to transfer data from SQLite to PostgreSQL
+ * 
+ * Run this script with: 
+ * npm run migrate
+ */
+
+import * as sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
+import * as path from 'path';
+import { Pool } from 'pg';
+import * as fs from 'fs';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
+
+// Define paths
+const dbPath = path.resolve(process.cwd(), 'data.sqlite');
+const logPath = path.resolve(process.cwd(), 'migration.log');
+
+// Helper function to log to file and console
+function log(message: string) {
+  console.log(message);
+  fs.appendFileSync(logPath, message + '\n');
+}
+
+// Connect to PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+// Main migration function
+async function migrateData() {
+  // Start with a new log file
+  fs.writeFileSync(logPath, `Migration Started: ${new Date().toISOString()}\n`);
+  log(`Working directory: ${process.cwd()}`);
+  log(`SQLite database path: ${dbPath}`);
+  
+  // Check if SQLite database exists
+  if (!fs.existsSync(dbPath)) {
+    log(`SQLite database not found at ${dbPath}. Nothing to migrate.`);
+    return;
+  }
+  
+  // Open SQLite database
+  const sqliteDb = await open({
+    filename: dbPath,
+    driver: sqlite3.Database
+  });
+  
+  log('SQLite database opened successfully.');
+  
+  // Get a PostgreSQL client
+  const pgClient = await pool.connect();
+  
+  try {
+    // Begin transaction
+    await pgClient.query('BEGIN');
+    
+    // 1. Migrate users table
+    log('Migrating users table...');
+    
+    // First check if the users table exists in SQLite
+    const usersTableExists = await sqliteDb.get(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='users'`
+    );
+    
+    if (usersTableExists) {
+      // Get users from SQLite
+      const users = await sqliteDb.all('SELECT * FROM users');
+      log(`Found ${users.length} users to migrate.`);
+      
+      // Create users table in PostgreSQL if it doesn't exist
+      await pgClient.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL 
+        )
+      `);
+      
+      // Insert users into PostgreSQL
+      for (const user of users) {
+        try {
+          await pgClient.query(
+            'INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING',
+            [user.username, user.password]
+          );
+          log(`Migrated user: ${user.username}`);
+        } catch (err) {
+          log(`Error migrating user ${user.username}: ${err}`);
+        }
+      }
+    } else {
+      log('Users table not found in SQLite database.');
+    }
+    
+    // 2. Migrate criminals table
+    log('Migrating criminals table...');
+    
+    // First check if the criminals table exists in SQLite
+    const criminalsTableExists = await sqliteDb.get(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='criminals'`
+    );
+    
+    if (criminalsTableExists) {
+      // Get criminals from SQLite
+      const criminals = await sqliteDb.all('SELECT * FROM criminals');
+      log(`Found ${criminals.length} criminals to migrate.`);
+      
+      // Create criminals table in PostgreSQL if it doesn't exist
+      await pgClient.query(`
+        CREATE TABLE IF NOT EXISTS criminals (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          age INTEGER NOT NULL,
+          gender TEXT NOT NULL,
+          crime_type TEXT NOT NULL,
+          crime_severity TEXT NOT NULL,
+          arrest_date TEXT NOT NULL,
+          arrest_location TEXT NOT NULL,
+          officer_in_charge TEXT NOT NULL,
+          case_status TEXT NOT NULL,
+          description TEXT NOT NULL,
+          prison_name TEXT,
+          release_date TEXT,
+          photo_path TEXT
+        )
+      `);
+      
+      // Insert criminals into PostgreSQL
+      for (const criminal of criminals) {
+        try {
+          await pgClient.query(
+            `INSERT INTO criminals (
+              name, age, gender, crime_type, crime_severity, arrest_date, 
+              arrest_location, officer_in_charge, case_status, description, 
+              prison_name, release_date, photo_path
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+            [
+              criminal.name,
+              criminal.age,
+              criminal.gender,
+              criminal.crime_type,
+              criminal.crime_severity,
+              criminal.arrest_date,
+              criminal.arrest_location,
+              criminal.officer_in_charge,
+              criminal.case_status,
+              criminal.description,
+              criminal.prison_name,
+              criminal.release_date,
+              criminal.photo_path
+            ]
+          );
+          log(`Migrated criminal record: ${criminal.name}`);
+        } catch (err) {
+          log(`Error migrating criminal ${criminal.name}: ${err}`);
+        }
+      }
+    } else {
+      log('Criminals table not found in SQLite database.');
+    }
+    
+    // Commit transaction
+    await pgClient.query('COMMIT');
+    log('Migration completed successfully!');
+    
+  } catch (error) {
+    // Rollback transaction on error
+    await pgClient.query('ROLLBACK');
+    log(`Migration failed: ${error}`);
+    throw error;
+  } finally {
+    // Close connections
+    await sqliteDb.close();
+    pgClient.release();
+    log('Connections closed.');
+  }
+}
+
+// Run migration
+migrateData()
+  .then(() => {
+    console.log('Migration script completed.');
+    process.exit(0);
+  })
+  .catch(err => {
+    console.error('Migration script failed:', err);
+    process.exit(1);
+  });
