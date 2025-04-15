@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openDb } from '@/lib/db';
-import fs from 'fs';
-import path from 'path';
+import { deleteFromBlob } from '@/lib/blob';
 
 // This tells Next.js that this route should be dynamically rendered at runtime
 export const dynamic = 'force-dynamic';
 
+// Use the correct typing for Next.js 15.3.0 App Router
+interface RouteContext {
+  params: {
+    id: string;
+  }
+}
+
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
-    // Make sure to await the params
+    // Get the ID from params
     const { id } = context.params;
     
     if (!id) {
@@ -31,19 +37,14 @@ export async function GET(
     // Delete the record from the database
     await db.run('DELETE FROM criminals WHERE id = $1', [id]);
     
-    // If there's a photo, delete it from the filesystem
+    // If there's a photo, delete it from Vercel Blob
     if (criminal.photo_path) {
       try {
-        // Convert the relative path to the absolute path
-        const photoPath = path.join(process.cwd(), 'public', criminal.photo_path);
-        
-        // Check if the file exists
-        if (fs.existsSync(photoPath)) {
-          // Delete the file
-          fs.unlinkSync(photoPath);
-        }
+        // Delete the file from Vercel Blob
+        await deleteFromBlob(criminal.photo_path);
+        console.log('Successfully deleted photo from Vercel Blob:', criminal.photo_path);
       } catch (fileError) {
-        console.error('Error deleting photo file:', fileError);
+        console.error('Error deleting photo from Vercel Blob:', fileError);
         // Continue execution even if file deletion fails
       }
     }

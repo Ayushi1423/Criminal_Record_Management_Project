@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openDb } from '@/lib/db';
-import fs from 'fs';
-import path from 'path';
-import { writeFile } from 'fs/promises';
-import { mkdir } from 'fs/promises';
+import { uploadToBlob } from '@/lib/blob';
 
 // This tells Next.js that this route should be dynamically rendered at runtime
 export const dynamic = 'force-dynamic';
 
-// Define the directory to save uploaded images
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'criminals');
-
-// Ensure the upload directory exists
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// This tells Next.js that this route should use streaming responses for larger files
+export const maxDuration = 60; // Set to 60 seconds for larger file uploads
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,26 +34,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Handle file upload
+    // Handle file upload to Vercel Blob
     let photo_path: string | null = null;
     const photo = formData.get('photo');
     
     if (photo && photo instanceof Blob) {
-      // Create a unique filename
-      const timestamp = Date.now();
-      const filename = `${timestamp}_criminal_photo.jpg`;
-      const filepath = path.join(UPLOAD_DIR, filename);
-      
-      // Ensure directory exists
-      await mkdir(UPLOAD_DIR, { recursive: true });
-      
-      // Read the file as ArrayBuffer and write to disk
-      const bytes = await photo.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await writeFile(filepath, buffer);
-      
-      // Save the relative path to the database
-      photo_path = `/uploads/criminals/${filename}`;
+      try {
+        // Create a unique filename
+        const timestamp = Date.now();
+        const filename = `${timestamp}_criminal_photo.jpg`;
+        
+        // Get file content as ArrayBuffer
+        const bytes = await photo.arrayBuffer();
+        
+        // Upload to Vercel Blob
+        photo_path = await uploadToBlob(filename, bytes);
+        
+        console.log('File uploaded to Vercel Blob:', photo_path);
+      } catch (uploadError) {
+        console.error('Failed to upload file to Vercel Blob:', uploadError);
+        return NextResponse.json(
+          { error: 'Failed to upload criminal photo', details: uploadError instanceof Error ? uploadError.message : 'Unknown error' },
+          { status: 500 }
+        );
+      }
     }
     
     const db = await openDb();
