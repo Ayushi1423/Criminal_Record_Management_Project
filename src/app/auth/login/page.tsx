@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import {
   Heading,
   Text,
@@ -19,7 +19,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default function Login() {
+// Create a client component that uses useSearchParams
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -216,5 +217,32 @@ export default function Login() {
         </Column>
       </Column>
     </Column>
+  );
+}
+
+// Create a loading fallback for Suspense
+function LoginLoading() {
+  return (
+    <Column fillWidth paddingY="80" paddingX="l" horizontal="center" flex={1}>
+      <Column
+        fillWidth
+        horizontal="center"
+        gap="48"
+        radius="xl"
+        paddingTop="80"
+        position="relative"
+      >
+        <Text>Loading login form...</Text>
+      </Column>
+    </Column>
+  );
+}
+
+// Export the main page component with Suspense
+export default function Login() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   );
 }
