@@ -61,3 +61,6 @@ next-env.d.ts
 
 # Optional Remix cache
 .cache/
+
+# sqlite data fiel
+data.sqlite
