@@ -1,4 +1,4 @@
-export const baseURL = "localhost:3000";
+export const baseURL = "http://localhost:3000";
 
 // default customization applied to the HTML in the main layout.tsx
 export const style = {
@@ -57,7 +57,7 @@ export const meta = {
   title: "Criminal Record Management System",
   description:
     "A system for managing criminal records.",
-  baseURL: "localhost:3000",
+  baseURL: "http://localhost:3000",
   type: "website",
 
   
