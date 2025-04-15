@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    // Make sure to await the params
+    const { id } = context.params;
     
     if (!id) {
       return NextResponse.json({ error: 'Criminal ID is required' }, { status: 400 });
