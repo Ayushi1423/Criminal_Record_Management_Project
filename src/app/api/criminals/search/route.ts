@@ -14,19 +14,23 @@ export async function GET(request: NextRequest) {
     const db = await openDb();
     let query = 'SELECT * FROM criminals WHERE 1=1'; // Start with a base query
     const params: (string | number)[] = [];
+    let paramIndex = 1; // For PostgreSQL parameter placeholders ($1, $2, etc.)
 
     // Add conditions based on query parameters
     if (name) {
-      query += ' AND name LIKE ?';
-      params.push(`%${name}%`); // Use LIKE for partial matching
+      query += ` AND name ILIKE $${paramIndex}`;
+      params.push(`%${name}%`); // Use ILIKE for case-insensitive partial matching in PostgreSQL
+      paramIndex++;
     }
     if (crime_type) {
-      query += ' AND crime_type = ?';
+      query += ` AND crime_type = $${paramIndex}`;
       params.push(crime_type);
+      paramIndex++;
     }
     if (status) {
-      query += ' AND case_status = ?';
+      query += ` AND case_status = $${paramIndex}`;
       params.push(status);
+      paramIndex++;
     }
 
     query += ' ORDER BY id DESC'; // Optional ordering
@@ -42,4 +46,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
