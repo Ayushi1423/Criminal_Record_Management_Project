@@ -5,20 +5,19 @@ import { deleteFromBlob } from '@/lib/blob';
 // This tells Next.js that this route should be dynamically rendered at runtime
 export const dynamic = 'force-dynamic';
 
-// Use the correct typing for Next.js 15.3.0 App Router
-interface RouteContext {
+type Params = {
   params: {
     id: string;
   }
-}
+};
 
 export async function GET(
   request: NextRequest,
-  context: RouteContext
+  { params }: Params
 ) {
   try {
     // Get the ID from params
-    const { id } = context.params;
+    const { id } = params;
     
     if (!id) {
       return NextResponse.json({ error: 'Criminal ID is required' }, { status: 400 });
