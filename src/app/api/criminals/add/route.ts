@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     await db.close();
     
     return NextResponse.json(
-      { message: 'Criminal record added successfully', id: result.lastID || result.id },
+      { message: 'Criminal record added successfully', id: result.lastID || result.rows?.[0]?.id },
       { status: 201 }
     );
     
