@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Heading,
   Text,
@@ -14,8 +14,8 @@ import {
   useToast,
   SmartImage,
 } from "@/once-ui/components";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +25,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const { addToast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get("callbackUrl") || "/dashboard";
+  const { status } = useSession();
+  
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
 
   const validateLogin = () => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,6 +61,7 @@ export default function Login() {
         redirect: false,
         email,
         password,
+        callbackUrl,
       });
 
       if (result?.error) {
@@ -58,10 +69,19 @@ export default function Login() {
           variant: "danger",
           message: "Invalid email or password",
         });
-      } else {
+        console.error("Login error:", result.error);
+      } else if (result?.url) {
         addToast({
           variant: "success",
           message: "Login successful!",
+        });
+        // Use the URL provided by NextAuth for redirection
+        router.push(result.url);
+      } else {
+        // Fallback to manual redirect
+        addToast({
+          variant: "success",
+          message: "Login successful! Redirecting...",
         });
         router.push("/dashboard");
       }
@@ -167,7 +187,7 @@ export default function Login() {
                     radius="top"
                   />
                   <PasswordInput
-                    autoComplete="new-password"
+                    autoComplete="current-password"
                     id="password"
                     label="Password"
                     labelAsPlaceholder
@@ -175,6 +195,11 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     value={password}
                     validate={validateLogin}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleLogin();
+                      }
+                    }}
                   />
                 </Column>
                 <Button
@@ -192,4 +217,4 @@ export default function Login() {
       </Column>
     </Column>
   );
-} 
+}

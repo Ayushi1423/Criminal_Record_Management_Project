@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Heading,
   Text,
@@ -8,6 +8,7 @@ import {
   Column,
   Background,
   Button,
+  useToast,
 } from "@/once-ui/components";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -15,12 +16,41 @@ import { useRouter } from "next/navigation";
 export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const { addToast } = useToast();
+
+  // Check authentication status and redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/login");
+    }
+  }, [status, router]);
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <Column fillWidth paddingY="40" paddingX="l" horizontal="center" flex={1}>
+        <Text>Loading dashboard...</Text>
+      </Column>
+    );
+  }
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/auth/login');
+    try {
+      await signOut({ redirect: false });
+      addToast({
+        variant: "success",
+        message: "Logged out successfully",
+      });
+      router.push('/auth/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+      addToast({
+        variant: "danger",
+        message: "Error during logout",
+      });
+    }
   };
 
   return (
@@ -113,4 +143,4 @@ export default function Dashboard() {
       </Column>
     </Column>
   );
-} 
+}
