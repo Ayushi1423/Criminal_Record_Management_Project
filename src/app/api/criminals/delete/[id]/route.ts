@@ -2,22 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openDb } from '@/lib/db';
 import { deleteFromBlob } from '@/lib/blob';
 
-// This tells Next.js that this route should be dynamically rendered at runtime
 export const dynamic = 'force-dynamic';
 
-type Params = {
-  params: {
-    id: string;
-  }
-};
-
-export async function GET(
+// Define DELETE handler instead of GET for deletion
+export async function DELETE(
   request: NextRequest,
-  { params }: Params
+  { params }: { params: { id: string } }
 ) {
   try {
-    // Get the ID from params
-    const { id } = params;
+    const id = params.id;
     
     if (!id) {
       return NextResponse.json({ error: 'Criminal ID is required' }, { status: 400 });
@@ -25,7 +18,6 @@ export async function GET(
 
     const db = await openDb();
     
-    // First, get the criminal record to check if there's an image to delete
     const criminal = await db.get('SELECT * FROM criminals WHERE id = $1', [id]);
     
     if (!criminal) {
@@ -33,18 +25,13 @@ export async function GET(
       return NextResponse.json({ error: 'Criminal record not found' }, { status: 404 });
     }
 
-    // Delete the record from the database
     await db.run('DELETE FROM criminals WHERE id = $1', [id]);
     
-    // If there's a photo, delete it from Vercel Blob
     if (criminal.photo_path) {
       try {
-        // Delete the file from Vercel Blob
         await deleteFromBlob(criminal.photo_path);
-        console.log('Successfully deleted photo from Vercel Blob:', criminal.photo_path);
       } catch (fileError) {
         console.error('Error deleting photo from Vercel Blob:', fileError);
-        // Continue execution even if file deletion fails
       }
     }
     
@@ -52,7 +39,7 @@ export async function GET(
     
     return NextResponse.json({ 
       message: 'Criminal record deleted successfully', 
-      id: id 
+      id
     });
     
   } catch (error: any) {
@@ -62,4 +49,13 @@ export async function GET(
       { status: 500 }
     );
   }
+}
+
+// Keep GET method for backward compatibility but implement it properly
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // Simply call the DELETE handler to avoid code duplication
+  return DELETE(request, { params });
 }
