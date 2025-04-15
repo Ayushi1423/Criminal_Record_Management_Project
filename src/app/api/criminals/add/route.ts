@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const db = await openDb();
     const result = await db.run(
       `INSERT INTO criminals (name, age, gender, crime_type, crime_severity, arrest_date, arrest_location, officer_in_charge, case_status, description, prison_name, release_date, photo_path)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
       [
         name,
         age,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     await db.close();
     
     return NextResponse.json(
-      { message: 'Criminal record added successfully', id: result.lastID },
+      { message: 'Criminal record added successfully', id: result.lastID || result.id },
       { status: 201 }
     );
     
@@ -97,4 +97,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
