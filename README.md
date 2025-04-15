@@ -34,6 +34,7 @@ This project is a web-based Criminal Record Management System built with Next.js
     -   Update `.env.local` with necessary variables:
         -   `NEXTAUTH_URL=http://localhost:3000` (Required for local development)
         -   `NEXTAUTH_SECRET=` (Required: Generate a strong secret key, e.g., `openssl rand -base64 32`)
+        -   `BLOB_READ_WRITE_TOKEN=` (Required: Get this from Vercel Blob)
 
 4.  **Initialize the Database:**
     -   The database uses SQLite (`data.sqlite`) and the schema is defined in `data.sql`.
@@ -67,6 +68,36 @@ npm run dev
 
 ## Important Notes
 
--   **Photo Uploads:** Photos are stored locally in the `public/uploads/criminals/` directory by default.
--   **Production Build:** The previous `README` mentioned build issues due to client/server component conflicts. Running in `dev` mode is the primary way to use this application currently.
+-   **Photo Uploads:** Photos are stored in Vercel Blob storage, which provides persistent cloud storage for your criminal photos.
+-   **Production Build:** The application is optimized for deployment on Vercel and uses Vercel Blob for storing photos. Make sure to add your `BLOB_READ_WRITE_TOKEN` to your Vercel project settings.
 -   **Demo Data:** The `npm run init-db` script may insert demo criminal data. Check the `data.sql` script for details.
+
+## Vercel Blob Integration
+
+This project uses Vercel Blob for storing criminal photos. Benefits include:
+
+- Persistent cloud storage for photos
+- Better scalability for production deployments
+- Automatic CDN distribution for faster image loading
+- No file system dependencies
+
+### Setup Vercel Blob
+
+1. Create a Vercel Blob store in your Vercel dashboard
+2. Add your Blob token to your environment variables:
+   ```
+   BLOB_READ_WRITE_TOKEN=your_token_here
+   ```
+
+### Migrating Existing Photos
+
+If you have existing photos stored in the file system, you can migrate them to Vercel Blob using the provided script:
+
+```bash
+npx ts-node -r dotenv/config scripts/migrations/migrate-photos-to-blob.ts
+```
+
+This script will:
+1. Find all criminals with local photo paths
+2. Upload each photo to Vercel Blob
+3. Update the database records with the new Blob URLs
