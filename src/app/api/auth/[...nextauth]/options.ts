@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
 				const db = await openDb();
 				try {
 					const user = await db.get(
-						'SELECT id, username, password FROM users WHERE username = ?',
+						'SELECT id, username, password FROM users WHERE username = $1',
 						[credentials.email],
 					);
 
@@ -69,10 +69,17 @@ export const authOptions: NextAuthOptions = {
 			},
 		}),
 	],
+	pages: {
+		signIn: '/auth/login',
+		signOut: '/auth/login',
+		error: '/auth/login',
+	},
 	session: {
 		strategy: 'jwt',
+		maxAge: 30 * 24 * 60 * 60, // 30 days
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	debug: process.env.NODE_ENV === 'development',
 
 	callbacks: {
 		async jwt({ token, user }) {
@@ -87,5 +94,17 @@ export const authOptions: NextAuthOptions = {
 			}
 			return session;
 		},
+		async redirect({ url, baseUrl }) {
+			// If the URL is relative, prepend the base URL
+			if (url.startsWith('/')) {
+				return `${baseUrl}${url}`;
+			}
+			// If the URL is absolute but on the same site, allow it
+			else if (new URL(url).origin === baseUrl) {
+				return url;
+			}
+			// Otherwise, redirect to the dashboard
+			return `${baseUrl}/dashboard`;
+		},
 	},
-}; 
+};
