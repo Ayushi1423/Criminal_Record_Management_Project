@@ -1,20 +1,18 @@
 import { put, del, list } from '@vercel/blob';
 
 /**
- * Upload a file to Vercel Blob
+ * Upload a file to Vercel Blob (files are always publicly accessible)
  * @param {string} filename - The filename for the blob
  * @param {Buffer | ArrayBuffer | Blob} content - The file content
- * @param {boolean} isPublic - Whether the file should be publicly accessible
  * @returns {Promise<string>} - Returns the URL of the uploaded blob
  */
 export async function uploadToBlob(
   filename: string, 
-  content: Buffer | ArrayBuffer | Blob,
-  isPublic: boolean = true
+  content: Buffer | ArrayBuffer | Blob
 ): Promise<string> {
   try {
     const { url } = await put(`criminals/${filename}`, content, { 
-      access: isPublic ? 'public' : 'private' 
+      access: 'public' 
     });
     return url;
   } catch (error) {
