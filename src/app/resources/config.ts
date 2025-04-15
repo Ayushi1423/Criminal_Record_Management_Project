@@ -1,4 +1,4 @@
-export const baseURL = "http://localhost:3000";
+export const baseURL = "criminal-record-management-project.vercel.app";
 
 // default customization applied to the HTML in the main layout.tsx
 export const style = {
