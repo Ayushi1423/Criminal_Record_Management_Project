@@ -1,103 +1,168 @@
 # Criminal Record Management System
 
-This project is a web-based Criminal Record Management System built with Next.js 15 (App Router), TypeScript, and NextAuth.js.
+A comprehensive web-based solution for managing criminal records with modern cloud infrastructure.
+
+## Technology Stack
+
+- **Frontend**: Next.js 15 (App Router), TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL (Neon DB)
+- **Authentication**: NextAuth.js
+- **Image Storage**: Vercel Blob
+- **Deployment**: Vercel
 
 ## Features
 
--   User Authentication (Login/Signup)
--   Add New Criminal Records (with Photo Upload)
--   List All Criminal Records
--   Search Criminal Records
--   Dashboard Overview
+- 🔐 Secure User Authentication (Login/Signup)
+- ✏️ Add, Edit and Delete Criminal Records
+- 📊 Dashboard with Statistics Overview
+- 🔍 Advanced Search and Filter Capabilities
+- 📸 Criminal Photo Management with Cloud Storage
+- 📱 Responsive Design for All Devices
 
 ## Getting Started
 
 ### Prerequisites
 
--   Node.js (version recommended by your Next.js version)
--   npm (or yarn/pnpm)
+- Node.js 18+ (LTS recommended)
+- npm, yarn, or pnpm
+- Git
 
-### Installation & Setup
+### Installation
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd <repository-directory>
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    # or yarn install / pnpm install
-    ```
-3.  **Set up Environment Variables:**
-    -   Copy `.env.local.example` (if it exists, otherwise create `.env.local`).
-    -   Update `.env.local` with necessary variables:
-        -   `NEXTAUTH_URL=http://localhost:3000` (Required for local development)
-        -   `NEXTAUTH_SECRET=` (Required: Generate a strong secret key, e.g., `openssl rand -base64 32`)
-        -   `BLOB_READ_WRITE_TOKEN=` (Required: Get this from Vercel Blob)
+1. **Clone the repository:**
 
-4.  **Initialize the Database:**
-    -   The database uses SQLite (`data.sqlite`) and the schema is defined in `data.sql`.
-    -   Run the initialization script:
-        ```bash
-        npm run init-db
-        ```
-    -   **What it does:** This command executes the `scripts/initialize-db.ts` script, which reads `data.sql` to create the `data.sqlite` database file. It sets up the `users` and `criminals` tables and may insert demo data (check `data.sql`).
-    -   **Default Admin User:** The script creates a default admin user with the following credentials:
-        -   **Username:** `admin@admin.com`
-        -   **Password:** `AdminAdminAdmin`
-    -   **Re-initializing:** If you need to reset the database, delete the `data.sqlite` file and run `npm run init-db` again.
+```bash
+git clone https://github.com/Ayushi1423/Criminal_Record_Management_Project.git
+cd Criminal_Record_Management_Project
+```
+
+2. **Install dependencies:**
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. **Set up Environment Variables:**
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```env
+# NextAuth configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXT_DISABLE_STATIC_OPTIMIZATION=true
+
+# PostgreSQL Database (Neon)
+DATABASE_URL=postgres://your_username:your_password@your_host/your_database?sslmode=require
+
+# Vercel Blob Storage for criminal photos
+BLOB_READ_WRITE_TOKEN="your_vercel_blob_token"
+```
+
+You can use the `.env.local.example` file provided in the repository as a template.
+
+### Database Setup
+
+This project uses a PostgreSQL database hosted on Neon. You have two options:
+
+#### Option 1: Use the Provided Cloud Database (Recommended)
+
+1. Request database credentials from the project maintainer
+2. Add the credentials to your `.env.local` file
+
+#### Option 2: Set Up Your Own Database
+
+1. Create a PostgreSQL database (locally or using a cloud provider like Neon)
+2. Execute the SQL schema in `data.sql.bak` to create the necessary tables
+3. Update your `.env.local` with your database connection string
 
 ### Running the Development Server
 
-1.  **Start the server:**
-    ```bash
-npm run dev
-# or yarn dev / pnpm dev
-    ```
-2.  **Access the application:**
-    -   Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
-    -   Log in using the default admin credentials.
-
-### Modifying the Project
-
--   **Source Code:** Edit files within the `src/` directory. The Next.js development server (`npm run dev`) provides Hot Module Replacement (HMR), so changes to components and pages should reflect automatically in the browser.
--   **Database Schema:** To change the database structure, modify the SQL commands in `data.sql` *before* running `npm run init-db` (or after deleting `data.sqlite`).
--   **Configuration:** Adjust application settings or add new environment variables in `.env.local`.
--   **Dependencies:** Add or remove packages using `npm install <package>` or `npm uninstall <package>`.
-
-## Important Notes
-
--   **Photo Uploads:** Photos are stored in Vercel Blob storage, which provides persistent cloud storage for your criminal photos.
--   **Production Build:** The application is optimized for deployment on Vercel and uses Vercel Blob for storing photos. Make sure to add your `BLOB_READ_WRITE_TOKEN` to your Vercel project settings.
--   **Demo Data:** The `npm run init-db` script may insert demo criminal data. Check the `data.sql` script for details.
-
-## Vercel Blob Integration
-
-This project uses Vercel Blob for storing criminal photos. Benefits include:
-
-- Persistent cloud storage for photos
-- Better scalability for production deployments
-- Automatic CDN distribution for faster image loading
-- No file system dependencies
-
-### Setup Vercel Blob
-
-1. Create a Vercel Blob store in your Vercel dashboard
-2. Add your Blob token to your environment variables:
-   ```
-   BLOB_READ_WRITE_TOKEN=your_token_here
-   ```
-
-### Migrating Existing Photos
-
-If you have existing photos stored in the file system, you can migrate them to Vercel Blob using the provided script:
-
 ```bash
-npx ts-node -r dotenv/config scripts/migrations/migrate-photos-to-blob.ts
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
 ```
 
-This script will:
-1. Find all criminals with local photo paths
-2. Upload each photo to Vercel Blob
-3. Update the database records with the new Blob URLs
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+Login with the default admin credentials:
+- **Username:** `admin@admin.com`
+- **Password:** `AdminAdminAdmin`
+
+### Building for Production
+
+```bash
+npm run build
+npm run start
+# or
+yarn build
+yarn start
+# or
+pnpm build
+pnpm start
+```
+
+## Project Structure
+
+```
+Criminal_Record_Management_Project/
+├── public/             # Static assets
+├── src/
+│   ├── app/            # App router pages and layouts
+│   │   ├── api/        # API routes
+│   │   ├── auth/       # Authentication pages
+│   │   ├── criminals/  # Criminal management pages
+│   │   └── dashboard/  # Dashboard page
+│   ├── components/     # Reusable components
+│   ├── lib/            # Utility functions and database connection
+│   ├── middleware.ts   # NextAuth middleware
+│   └── once-ui/        # UI component library
+├── scripts/            # Utility scripts for database operations
+├── next.config.mjs     # Next.js configuration
+├── tailwind.config.js  # Tailwind CSS configuration
+└── tsconfig.json       # TypeScript configuration
+```
+
+## Image Storage with Vercel Blob
+
+This project uses Vercel Blob for storing criminal photos, which offers:
+
+- Persistent cloud storage that works in production environments
+- Automatic CDN distribution for faster loading
+- No local filesystem dependencies
+- Secure URL generation
+
+To set up Vercel Blob:
+
+1. Create a Vercel Blob store in your Vercel dashboard
+2. Add your Blob token to your environment variables
+
+## Database Migration
+
+The project has been migrated from SQLite to PostgreSQL. If you need to work with the old SQLite database format, reference files with `.bak` extensions, which contain the original SQLite configuration.
+
+## Deployment on Vercel
+
+The easiest way to deploy this application is through Vercel:
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure the environment variables in Vercel dashboard
+4. Deploy!
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAyushi1423%2FCriminal_Record_Management_Project)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the ISC License - see the LICENSE file for details.
