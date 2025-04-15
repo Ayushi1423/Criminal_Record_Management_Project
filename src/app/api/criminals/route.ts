@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const db = await openDb();
-    // Select all columns from the criminals table
+    // Select all columns from the criminals table - syntax works for both SQLite and PostgreSQL
     const criminals = await db.all('SELECT * FROM criminals ORDER BY id DESC');
     await db.close();
 
@@ -19,4 +19,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
