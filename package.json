@@ -25,6 +25,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/formidable": "^3.4.5",
     "@types/pg": "^8.10.7",
+    "@vercel/blob": "^1.0.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "formidable": "^3.5.2",
