@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       await writeFile(filepath, buffer);
       
       // Save the relative path to the database
-      photo_path = path.join('/uploads', 'criminals', filename).replace(/\\/g, '/');
+      photo_path = `/uploads/criminals/${filename}`;
     }
     
     const db = await openDb();
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     await db.close();
     
     return NextResponse.json(
-      { message: 'Criminal record added successfully', id: result.lastID || result.rows?.[0]?.id },
+      { message: 'Criminal record added successfully', id: result.lastID },
       { status: 201 }
     );
     

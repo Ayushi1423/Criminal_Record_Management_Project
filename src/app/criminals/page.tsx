@@ -70,7 +70,8 @@ export default function ListCriminalsPage() {
           <Avatar 
               key={`${criminal.id}-photo`}
               src={criminal.photo_path || '/images/default-avatar.png'}
-              size="s" // Use valid size
+              size="s"
+              unoptimized={true}
           />,
           criminal.name,
           criminal.age,
