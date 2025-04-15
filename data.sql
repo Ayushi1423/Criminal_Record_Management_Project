@@ -1,13 +1,13 @@
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL 
 );
 
 -- Create criminals table
 CREATE TABLE IF NOT EXISTS criminals (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   age INTEGER NOT NULL,
   gender TEXT NOT NULL,
@@ -74,4 +74,4 @@ null, null, 'uploads/criminals/DroopyDog.png'),
 -- Insert default admin user with plaintext password 'AdminAdminAdmin'
 -- We'll use plaintext password for simplicity during development
 INSERT INTO users (username, password) VALUES 
-('admin@admin.com', 'AdminAdminAdmin'); 
+('admin@admin.com', 'AdminAdminAdmin');
