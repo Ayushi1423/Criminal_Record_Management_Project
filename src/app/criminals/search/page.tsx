@@ -25,13 +25,30 @@ interface Criminal {
 
 // Define options for the status Select component
 const statusOptions = [
-  { value: '', label: 'All Statuses' }, // Added option for clearing filter
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Under Investigation', label: 'Under Investigation' },
-  { value: 'Charged', label: 'Charged' },
-  { value: 'Convicted', label: 'Convicted' },
-  { value: 'Acquitted', label: 'Acquitted' },
-  { value: 'Closed', label: 'Closed' },
+  { value: '', label: 'All Statuses' },
+  { value: 'Wanted', label: 'Wanted' },
+  { value: 'Released', label: 'Released' },
+  { value: 'Dead', label: 'Dead' },
+  { value: 'Arrested', label: 'Arrested' },
+];
+
+// Define options for the crime type Select component
+const crimeTypeOptions = [
+  { value: '', label: 'All Crime Types' },
+  { value: 'Arson', label: 'Arson' },
+  { value: 'Assault', label: 'Assault' },
+  { value: 'Blackmail', label: 'Blackmail' },
+  { value: 'Conspiracy', label: 'Conspiracy' },
+  { value: 'Drug Trafficking', label: 'Drug Trafficking' },
+  { value: 'Espionage', label: 'Espionage' },
+  { value: 'Hacking', label: 'Hacking' },
+  { value: 'Illegal Experimentation', label: 'Illegal Experimentation' },
+  { value: 'Kidnapping', label: 'Kidnapping' },
+  { value: 'Mass Destruction', label: 'Mass Destruction' },
+  { value: 'Murder', label: 'Murder' },
+  { value: 'Smuggling', label: 'Smuggling' },
+  { value: 'Terrorism', label: 'Terrorism' },
+  { value: 'Theft', label: 'Theft' },
 ];
 
 // Define headers for the Table component
@@ -130,14 +147,15 @@ export default function SearchCriminalsPage() {
             placeholder="Search by name..."
             style={{ flexGrow: 1, minWidth: '150px' }}
           />
-          <Input
+          <Select
             id="crime-type-search"
             label="Crime Type"
             name="crime_type"
             value={searchParams.crime_type}
-            onChange={handleInputChange}
-            placeholder="e.g., Theft"
-             style={{ flexGrow: 1, minWidth: '150px' }}
+            options={crimeTypeOptions}
+            onSelect={(value) => handleSelectChange(value, 'crime_type')}
+            placeholder="Filter by crime type"
+            style={{ flexGrow: 1, minWidth: '150px' }}
           />
           <Select
             id="status-search"
@@ -182,4 +200,4 @@ export default function SearchCriminalsPage() {
       )}
     </CriminalsLayout>
   );
-} 
+}
